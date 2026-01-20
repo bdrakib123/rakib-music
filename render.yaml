@@ -5,8 +5,7 @@ services:
     plan: free
     buildCommand: |
       apt-get update
-      apt-get install -y python3 python3-pip ffmpeg
-      pip3 install -U yt-dlp
-      python3 -m yt_dlp --version
+      apt-get install -y python3 ffmpeg yt-dlp
+      yt-dlp --version
       npm install
     startCommand: node index.js
