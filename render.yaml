@@ -5,7 +5,9 @@ services:
     plan: free
     buildCommand: |
       apt-get update
-      apt-get install -y python3 ffmpeg yt-dlp
-      yt-dlp --version
+      apt-get install -y python3 python3-pip ffmpeg
+      pip3 install --user -U yt-dlp
+      export PATH=$PATH:/root/.local/bin
+      /root/.local/bin/yt-dlp --version
       npm install
     startCommand: node index.js
