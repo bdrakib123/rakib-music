@@ -18,8 +18,10 @@ router.get("/video", (req, res) => {
 
   const file = `video_${Date.now()}.mp4`;
 
-  // ✅ NO absolute path
-  const cmd = `yt-dlp --cookies "${COOKIES}" "ytsearch1:${q}" -f "mp4[filesize_approx<=25M]/mp4" --no-playlist -o "${file}"`;
+  // ✅ python module call
+  const cmd =
+    `python3 -m yt_dlp --cookies "${COOKIES}" ` +
+    `"ytsearch1:${q}" -f "mp4[filesize_approx<=25M]/mp4" --no-playlist -o "${file}"`;
 
   exec(cmd, (err, stdout, stderr) => {
     console.log("STDOUT:", stdout);
