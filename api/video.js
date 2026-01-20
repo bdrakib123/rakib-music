@@ -4,7 +4,6 @@ const fs = require("fs");
 const path = require("path");
 
 const router = express.Router();
-
 const API_KEY = "rakib69";
 const COOKIES = path.join(process.cwd(), "cookies.txt");
 
@@ -18,29 +17,22 @@ router.get("/video", (req, res) => {
 
   const file = `video_${Date.now()}.mp4`;
 
-  // ✅ python module call
   const cmd =
-    `python3 -m yt_dlp --cookies "${COOKIES}" ` +
+    `yt-dlp --cookies "${COOKIES}" ` +
     `"ytsearch1:${q}" -f "mp4[filesize_approx<=25M]/mp4" --no-playlist -o "${file}"`;
 
   exec(cmd, (err, stdout, stderr) => {
-    console.log("STDOUT:", stdout);
-    console.log("STDERR:", stderr);
+    console.log(stderr);
 
     if (err) {
-      return res.status(500).json({
-        error: "yt-dlp failed",
-        details: stderr
-      });
+      return res.status(500).json({ error: "yt-dlp failed", details: stderr });
     }
 
     if (!fs.existsSync(file)) {
       return res.status(500).json({ error: "File not created" });
     }
 
-    res.sendFile(process.cwd() + "/" + file, () => {
-      fs.unlinkSync(file);
-    });
+    res.sendFile(process.cwd() + "/" + file, () => fs.unlinkSync(file));
   });
 });
 
