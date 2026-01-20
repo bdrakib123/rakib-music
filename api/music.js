@@ -6,7 +6,6 @@ const path = require("path");
 const router = express.Router();
 
 const API_KEY = "rakib69";
-const YTDLP = "/usr/local/bin/yt-dlp";
 const COOKIES = path.join(process.cwd(), "cookies.txt");
 
 router.get("/song", (req, res) => {
@@ -15,13 +14,12 @@ router.get("/song", (req, res) => {
   }
 
   const q = req.query.query;
-  if (!q) {
-    return res.status(400).json({ error: "Missing query" });
-  }
+  if (!q) return res.status(400).json({ error: "Missing query" });
 
   const file = `song_${Date.now()}.mp3`;
 
-  const cmd = `${YTDLP} --cookies "${COOKIES}" "ytsearch1:${q}" -x --audio-format mp3 --audio-quality 0 --no-playlist -o "${file}"`;
+  // ✅ NO absolute path
+  const cmd = `yt-dlp --cookies "${COOKIES}" "ytsearch1:${q}" -x --audio-format mp3 --audio-quality 0 --no-playlist -o "${file}"`;
 
   exec(cmd, (err, stdout, stderr) => {
     console.log("STDOUT:", stdout);
