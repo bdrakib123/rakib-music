@@ -18,8 +18,10 @@ router.get("/song", (req, res) => {
 
   const file = `song_${Date.now()}.mp3`;
 
-  // ✅ NO absolute path
-  const cmd = `yt-dlp --cookies "${COOKIES}" "ytsearch1:${q}" -x --audio-format mp3 --audio-quality 0 --no-playlist -o "${file}"`;
+  // ✅ python module call (MOST IMPORTANT FIX)
+  const cmd =
+    `python3 -m yt_dlp --cookies "${COOKIES}" ` +
+    `"ytsearch1:${q}" -x --audio-format mp3 --audio-quality 0 --no-playlist -o "${file}"`;
 
   exec(cmd, (err, stdout, stderr) => {
     console.log("STDOUT:", stdout);
