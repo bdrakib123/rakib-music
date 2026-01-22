@@ -1,55 +1,30 @@
 const express = require("express");
-const { exec } = require("child_process");
-const fs = require("fs");
-const path = require("path");
-const yts = require("youtube-sr").default;
-
+const { spawn } = require("child_process");
 const router = express.Router();
 
-router.get("/song", async (req, res) => {
+router.get("/song", (req, res) => {
   const query = req.query.query;
-  if (!query) return res.status(400).send("Missing query");
-
-  // 🔍 Search safely (NO undici)
-  const results = await yts.search(query, { limit: 1 });
-  if (!results.length) {
-    return res.status(404).send("No video found");
+  if (!query) {
+    return res.status(400).send("Missing query");
   }
 
-  const videoUrl = results[0].url;
+  res.setHeader("Content-Type", "audio/mpeg");
 
-  const file = `song_${Date.now()}.mp3`;
-  const filePath = path.join(process.cwd(), file);
+  const ytdlp = spawn("yt-dlp", [
+    `ytsearch1:${query}`,
+    "-x",
+    "--audio-format",
+    "mp3",
+    "--audio-quality",
+    "0",
+    "-o",
+    "-"
+  ]);
 
-  const cmd = `
-yt-dlp \
-"${videoUrl}" \
--x --audio-format mp3 --audio-quality 0 \
---no-playlist \
--o "${filePath}"
-  `;
+  ytdlp.stdout.pipe(res);
 
-  exec(cmd, (err, stdout, stderr) => {
-    console.log(stderr);
-
-    if (err || !fs.existsSync(filePath)) {
-      return res.status(500).json({
-        error: "yt-dlp failed",
-        details: stderr
-      });
-    }
-
-    res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader(
-      "Content-Disposition",
-      `inline; filename="${file}"`
-    );
-
-    const stream = fs.createReadStream(filePath);
-    stream.pipe(res);
-
-    stream.on("close", () => fs.unlinkSync(filePath));
-  });
+  ytdlp.stderr.on("data", () => {});
+  ytdlp.on("close", () => res.end());
 });
 
 module.exports = router;
