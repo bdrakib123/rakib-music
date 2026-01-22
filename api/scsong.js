@@ -15,11 +15,18 @@ router.get("/scsong", (req, res) => {
   const file = `sc_${Date.now()}.mp3`;
   const filePath = path.join("/tmp", file);
 
-  // 🔥 SoundCloud search + download
-  const cmd = `yt-dlp "scsearch1:${query}" -x --audio-format mp3 -o "${filePath}"`;
+  /**
+   * 🔥 KEY CHANGE:
+   * Use SoundCloud search via normal URL
+   * NOT scsearch1:
+   */
+  const cmd =
+    `yt-dlp "https://soundcloud.com/search?q=${encodeURIComponent(query)}" ` +
+    `-x --audio-format mp3 --audio-quality 0 --no-playlist -o "${filePath}"`;
 
   exec(cmd, (err) => {
     if (err || !fs.existsSync(filePath)) {
+      console.error(err);
       return res.status(500).send("SoundCloud download failed");
     }
 
