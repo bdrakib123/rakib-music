@@ -1,14 +1,11 @@
 const express = require("express");
 const app = express();
 
-app.use("/api", require("./api/song"));
-app.use("/api", require("./api/video"));
+app.use("/api", require("./api/scsong"));
 
 app.get("/", (req, res) => {
-  res.send("Music API running");
+  res.send("SoundCloud Music API running");
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
-});
+app.listen(PORT, () => console.log("Server running"));
