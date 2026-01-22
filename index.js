@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 
-app.use("/api", require("./api/music"));
+app.use("/api", require("./api/song"));
 app.use("/api", require("./api/video"));
 
 app.get("/", (req, res) => {
