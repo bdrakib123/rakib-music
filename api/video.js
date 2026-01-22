@@ -1,31 +1,28 @@
 const express = require("express");
-const { exec } = require("child_process");
-const fs = require("fs");
-const path = require("path");
-
+const { spawn } = require("child_process");
 const router = express.Router();
-const API_KEY = "rakib69";
-const YTDLP = "/root/.local/bin/yt-dlp";
-const COOKIES = path.join(process.cwd(), "cookies.txt");
 
+/**
+ * GET /api/video?query=tum+hi+ho
+ */
 router.get("/video", (req, res) => {
-  if (req.query.apikey !== API_KEY)
-    return res.status(403).json({ error: "Invalid API key" });
+  const query = req.query.query;
+  if (!query) {
+    return res.status(400).send("Missing query");
+  }
 
-  const q = req.query.query;
-  if (!q) return res.status(400).json({ error: "Missing query" });
+  res.setHeader("Content-Type", "video/mp4");
 
-  const file = `video_${Date.now()}.mp4`;
+  const ytdlp = spawn("yt-dlp", [
+    `ytsearch1:${query}`,
+    "-f", "mp4[filesize_approx<=25M]/mp4",
+    "-o", "-"
+  ]);
 
-  const cmd = `${YTDLP} --cookies "${COOKIES}" "ytsearch1:${q}" -f "mp4[filesize_approx<=25M]/mp4" --no-playlist -o "${file}"`;
+  ytdlp.stdout.pipe(res);
 
-  exec(cmd, (err, stdout, stderr) => {
-    console.log(stderr);
-    if (err)
-      return res.status(500).json({ error: "yt-dlp failed", details: stderr });
-
-    res.sendFile(process.cwd() + "/" + file, () => fs.unlinkSync(file));
-  });
+  ytdlp.stderr.on("data", () => {});
+  ytdlp.on("close", () => res.end());
 });
 
 module.exports = router;
