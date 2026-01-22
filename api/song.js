@@ -2,7 +2,7 @@ const express = require("express");
 const { exec } = require("child_process");
 const fs = require("fs");
 const path = require("path");
-const yts = require("yt-search");
+const yts = require("youtube-sr").default;
 
 const router = express.Router();
 
@@ -10,18 +10,17 @@ router.get("/song", async (req, res) => {
   const query = req.query.query;
   if (!query) return res.status(400).send("Missing query");
 
-  // 🔍 Step 1: search via yt-search (NO yt-dlp)
-  const search = await yts(query);
-  if (!search.videos.length) {
+  // 🔍 Search safely (NO undici)
+  const results = await yts.search(query, { limit: 1 });
+  if (!results.length) {
     return res.status(404).send("No video found");
   }
 
-  const videoUrl = search.videos[0].url;
+  const videoUrl = results[0].url;
 
   const file = `song_${Date.now()}.mp3`;
   const filePath = path.join(process.cwd(), file);
 
-  // 🎯 Step 2: direct URL download (NO ytsearch)
   const cmd = `
 yt-dlp \
 "${videoUrl}" \
