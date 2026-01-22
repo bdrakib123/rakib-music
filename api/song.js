@@ -2,23 +2,29 @@ const express = require("express");
 const { exec } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const yts = require("yt-search");
 
 const router = express.Router();
 
-router.get("/song", (req, res) => {
+router.get("/song", async (req, res) => {
   const query = req.query.query;
   if (!query) return res.status(400).send("Missing query");
+
+  // 🔍 Step 1: search via yt-search (NO yt-dlp)
+  const search = await yts(query);
+  if (!search.videos.length) {
+    return res.status(404).send("No video found");
+  }
+
+  const videoUrl = search.videos[0].url;
 
   const file = `song_${Date.now()}.mp3`;
   const filePath = path.join(process.cwd(), file);
 
+  // 🎯 Step 2: direct URL download (NO ytsearch)
   const cmd = `
 yt-dlp \
---cookies cookies.txt \
---user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
---add-header "Accept-Language:en-US,en;q=0.9" \
---extractor-args "youtube:player_client=android" \
-"ytsearch1:${query}" \
+"${videoUrl}" \
 -x --audio-format mp3 --audio-quality 0 \
 --no-playlist \
 -o "${filePath}"
@@ -29,7 +35,7 @@ yt-dlp \
 
     if (err || !fs.existsSync(filePath)) {
       return res.status(500).json({
-        error: "yt-dlp error",
+        error: "yt-dlp failed",
         details: stderr
       });
     }
